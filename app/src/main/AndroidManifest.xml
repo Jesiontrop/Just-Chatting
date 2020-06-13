@@ -19,7 +19,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name="com.jesiontrop.justchatting.feature.sign_in.SignInActivity" />
+        <activity android:name="com.jesiontrop.justchatting.feature.sign_in.AuthenticationActivity" />
 
         <service android:name=".base.utils.service.MyFirebaseMessagingService"
             android:exported = "false">

@@ -51,7 +51,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.jesiontrop.justchatting.base.utils.data.ChatMessage;
 import com.jesiontrop.justchatting.R;
-import com.jesiontrop.justchatting.feature.sign_in.SignInActivity;
+import com.jesiontrop.justchatting.feature.sign_in.AuthenticationActivity;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -96,7 +96,7 @@ public class ChatFragment extends Fragment
         mFirebaseAuth = FirebaseAuth.getInstance();
         mFirebaseUser = mFirebaseAuth.getCurrentUser();
         if(mFirebaseUser == null) {
-            startActivity(new Intent(getActivity(), SignInActivity.class));
+            startActivity(new Intent(getActivity(), AuthenticationActivity.class));
             getActivity().finish();
             return;
         } else {
@@ -260,7 +260,7 @@ public class ChatFragment extends Fragment
                 mFirebaseAuth.signOut();
                 Auth.GoogleSignInApi.signOut(mGoogleApiClient);
                 mUsername = ANONYMOUS;
-                startActivity(new Intent(getActivity(), SignInActivity.class));
+                startActivity(new Intent(getActivity(), AuthenticationActivity.class));
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

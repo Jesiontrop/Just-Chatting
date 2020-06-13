@@ -1,11 +1,13 @@
 package com.jesiontrop.justchatting.feature.sign_in;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -38,38 +40,55 @@ public class SignInFragment extends Fragment
     private static final String TAG = "SignInActivity";
     private static final int RC_SIGN_IN = 9001;
 
-    private SignInButton mSignInButton;
+    private SignInButton mGoogleSignInButton;
+    private Button mSignUpButton;
 
     private GoogleApiClient mGoogleApiClient;
 
     private FirebaseAuth mFireBaseAuth;
+    private Callbacks mCallbacks;
+
+    public interface Callbacks {
+        void onSignUpSelected();
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mCallbacks = (Callbacks) context;
+    }
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle saveInstanceState) {
         View v = inflater.inflate(R.layout.fragment_sign_in, container,
                 false);
 
-        mSignInButton = (SignInButton) v.findViewById(R.id.sign_in_button);
+        mGoogleSignInButton = (SignInButton) v.findViewById(R.id.google_sign_in_button);
 
-        mSignInButton.setOnClickListener(new View.OnClickListener() {
+        mGoogleSignInButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 signIn();
             }
         });
 
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.IdToken))
-                .requestEmail()
-                .build();
-        mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
-                .enableAutoManage(getActivity() , this)
-                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
-                .build();
+        mSignUpButton = (Button) v.findViewById(R.id.sign_up_button);
+        mSignUpButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCallbacks.onSignUpSelected();
+            }
+        });
 
         mFireBaseAuth = FirebaseAuth.getInstance();
 
         return v;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mCallbacks = null;
     }
 
     @Override
@@ -94,6 +113,16 @@ public class SignInFragment extends Fragment
     }
 
     private void signIn() {
+
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(getString(R.string.IdToken))
+            .requestEmail()
+            .build();
+        mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
+                .enableAutoManage(getActivity() , this)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .build();
+
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
