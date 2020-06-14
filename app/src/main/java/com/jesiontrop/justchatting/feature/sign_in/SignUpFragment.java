@@ -2,13 +2,18 @@ package com.jesiontrop.justchatting.feature.sign_in;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -24,18 +29,26 @@ import com.google.firebase.auth.UserProfileChangeRequest;
 import com.jesiontrop.justchatting.R;
 import com.jesiontrop.justchatting.app.ChatActivity;
 
+import java.io.File;
+import java.io.IOException;
+
+
 public class SignUpFragment extends Fragment {
     private static final String TAG = "SignUpFragment";
+    private static final int PICK_IMAGE_REQUEST = 100;
 
     private EditText mUsernameEditText;
     private EditText mEmailEditText;
     private EditText mPasswordEditText;
     private EditText mConfirmPasswordEditText;
+    private ImageView mPhotoImageView;
     private Button mSignInButton;
     private Button mSignUpButton;
 
     private FirebaseUser mFirebaseUser;
     private FirebaseAuth mAuth;
+
+    private Uri mSelectedImage;
 
     private Callbacks mCallbacks;
 
@@ -71,6 +84,14 @@ public class SignUpFragment extends Fragment {
         mPasswordEditText = (EditText) v.findViewById(R.id.password_edit_text);
         mConfirmPasswordEditText = (EditText) v.findViewById(R.id.confirm_password_edit_text);
 
+        mPhotoImageView = (ImageView) v.findViewById(R.id.photo_image_view);
+        mPhotoImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pickPhoto();
+            }
+        });
+
         mSignInButton = (Button) v.findViewById(R.id.sign_in_button);
         mSignInButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -93,6 +114,31 @@ public class SignUpFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mCallbacks = null;
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        File compressedImageFile;
+
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == getActivity().RESULT_OK
+                && null != data) {
+            mSelectedImage = data.getData();
+            Log.d(TAG, "PhotoUri: " + mSelectedImage );
+            mPhotoImageView.setImageURI(mSelectedImage);
+        }
+    }
+
+    private void pickPhoto() {
+        Intent intent;
+        intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        intent.setType("image/*");
+
+        startActivityForResult(Intent.createChooser(intent, "Choose avatar"), PICK_IMAGE_REQUEST);
     }
 
     private void signUp() {
@@ -125,9 +171,17 @@ public class SignUpFragment extends Fragment {
 
     private void updateProfile() {
         String name = mUsernameEditText.getText().toString();
-        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                .setDisplayName(name)
-                .build();
+
+        UserProfileChangeRequest.Builder profileUpdatesBuilder = new UserProfileChangeRequest.Builder()
+                .setDisplayName(name);
+
+        if (mSelectedImage != null){
+            profileUpdatesBuilder
+                    .setPhotoUri(mSelectedImage);
+        }
+
+        UserProfileChangeRequest profileUpdates = profileUpdatesBuilder.build();
+
         mFirebaseUser.updateProfile(profileUpdates)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override

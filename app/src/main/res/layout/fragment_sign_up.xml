@@ -29,7 +29,7 @@
             <ImageView
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:id="@+id/PhotoUrl"
+                android:id="@+id/photo_image_view"
                 android:src="@android:drawable/ic_menu_camera"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/linearLayout2"

@@ -142,6 +142,7 @@ public class ChatFragment extends Fragment
         SnapshotParser<ChatMessage> parser = new SnapshotParser<ChatMessage>() {
             @Override
             public ChatMessage parseSnapshot(DataSnapshot dataSnapshot) {
+                Log.d(TAG, dataSnapshot.toString());
                 String name = dataSnapshot.child("name").getValue(String.class);
                 String text = dataSnapshot.child("text").getValue(String.class);
                 String photoUrl = dataSnapshot.child("photoUrl").getValue(String.class);
