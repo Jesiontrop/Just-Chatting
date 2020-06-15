@@ -3,6 +3,7 @@ package com.jesiontrop.justchatting.feature.sign_in;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -21,14 +22,22 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.jesiontrop.justchatting.R;
 import com.jesiontrop.justchatting.app.ChatActivity;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 
@@ -48,7 +57,7 @@ public class SignUpFragment extends Fragment {
     private FirebaseUser mFirebaseUser;
     private FirebaseAuth mAuth;
 
-    private Uri mSelectedImage;
+    private Uri mSelectedUri;
 
     private Callbacks mCallbacks;
 
@@ -123,9 +132,10 @@ public class SignUpFragment extends Fragment {
 
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == getActivity().RESULT_OK
                 && null != data) {
-            mSelectedImage = data.getData();
-            Log.d(TAG, "PhotoUri: " + mSelectedImage );
-            mPhotoImageView.setImageURI(mSelectedImage);
+            Uri uri = data.getData();
+            mSelectedUri = uri;
+            Log.d(TAG, "PhotoUri: " + mSelectedUri );
+            mPhotoImageView.setImageURI(mSelectedUri);
         }
     }
 
@@ -153,7 +163,7 @@ public class SignUpFragment extends Fragment {
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             if (task.isSuccessful()){
                                 mFirebaseUser = mAuth.getCurrentUser();
-                                updateProfile();
+                                setSettingProfile();
                             } else {
                                 Log.w(TAG, "signInWithEmail:failure", task.getException());
                                 Toast.makeText(getActivity(), "Authentication failed.",
@@ -169,34 +179,63 @@ public class SignUpFragment extends Fragment {
 
     }
 
-    private void updateProfile() {
+    private void setSettingProfile() {
         String name = mUsernameEditText.getText().toString();
 
-        UserProfileChangeRequest.Builder profileUpdatesBuilder = new UserProfileChangeRequest.Builder()
+        final UserProfileChangeRequest.Builder profileUpdatesBuilder = new UserProfileChangeRequest
+                .Builder()
                 .setDisplayName(name);
 
-        if (mSelectedImage != null){
-            profileUpdatesBuilder
-                    .setPhotoUri(mSelectedImage);
+        if (mSelectedUri != null){
+
+            StorageReference databaseReference = FirebaseStorage.getInstance().getReference()
+                    .child("users")
+                    .child(mFirebaseUser.getUid())
+                    .child("photoUrl");
+
+            UploadTask uploadTask = databaseReference.putFile(mSelectedUri);
+            uploadTask.addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception exception) {
+                    Log.d(TAG, "User PhotoUrl can't uploaded");
+                }
+            }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    Task<Uri> uri = taskSnapshot.getStorage().getDownloadUrl();
+                    while(!uri.isComplete());
+                    Uri url = uri.getResult();
+                    profileUpdatesBuilder
+                            .setPhotoUri(url);
+                    UserProfileChangeRequest profileChangeRequest = profileUpdatesBuilder.build();
+                    updateProfile(profileChangeRequest);
+                    Log.d(TAG, "User PhotoUrl is uploaded: " + url.toString());
+                }
+            });
+        } else {
+            UserProfileChangeRequest profileChangeRequest = profileUpdatesBuilder.build();
+
+            updateProfile(profileChangeRequest);
         }
 
-        UserProfileChangeRequest profileUpdates = profileUpdatesBuilder.build();
+    }
 
-        mFirebaseUser.updateProfile(profileUpdates)
+    private void updateProfile(UserProfileChangeRequest profileChangeRequest) {
+        mFirebaseUser.updateProfile(profileChangeRequest)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-               if (task.isSuccessful()) {
-                   Log.d(TAG, "Username: " + mFirebaseUser.getDisplayName());
-                   quit();
-               } else {
-                   Log.i(TAG, "Can't set username");
-                   Toast.makeText(getActivity(), "Can't set username", Toast.LENGTH_SHORT)
-                           .show();
-               }
-            }
-        });
-
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            Log.d(TAG, "Username: " + mFirebaseUser.getDisplayName());
+                            quit();
+                        } else {
+                            Log.i(TAG, "Can't set username");
+                            Toast.makeText(getActivity(), "Can't set username",
+                                    Toast.LENGTH_SHORT)
+                                    .show();
+                        }
+                    }
+                });
     }
 
     private void quit() {
