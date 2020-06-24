@@ -68,7 +68,6 @@ public class ChatFragment extends Fragment
     private static final String ANONYMOUS = "anonymous";
     private String mUsername;
     private String mPhotoUrl;
-    private GoogleApiClient mGoogleApiClient;
 
     private Button mSendButton;
     private RecyclerView mMessageRecyclerView;
@@ -82,6 +81,10 @@ public class ChatFragment extends Fragment
     private DatabaseReference mFirebaseDatabaseReference;
     private FirebaseRecyclerAdapter<ChatMessage, ChatFragment.MessageViewHolder> mFirebaseAdapter;
     private FirebaseRemoteConfig mFirebaseRemoteConfig;
+
+    public ChatFragment() {
+
+    }
 
     public static ChatFragment newInstance() {
         return new ChatFragment();
@@ -121,10 +124,6 @@ public class ChatFragment extends Fragment
 
         fetchConfig();
 
-        mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
-                .enableAutoManage(getActivity() , this)
-                .addApi(Auth.GOOGLE_SIGN_IN_API)
-                .build();
     }
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -256,12 +255,6 @@ public class ChatFragment extends Fragment
         switch (item.getItemId()) {
             case R.id.fresh_config_menu:
                 fetchConfig();
-                return true;
-            case R.id.sign_out_menu:
-                mFirebaseAuth.signOut();
-                Auth.GoogleSignInApi.signOut(mGoogleApiClient);
-                mUsername = ANONYMOUS;
-                startActivity(new Intent(getActivity(), AuthenticationActivity.class));
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

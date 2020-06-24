@@ -1,43 +1,49 @@
 package com.jesiontrop.justchatting.feature.sign_in;
 
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
+import android.os.Bundle;
+import android.view.MenuItem;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+import androidx.navigation.ui.NavigationUI;
+
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.jesiontrop.justchatting.R;
-import com.jesiontrop.justchatting.base.core_ui.SingleFragmentActivity;
 
-public class AuthenticationActivity extends SingleFragmentActivity
+public class AuthenticationActivity extends AppCompatActivity
     implements SignInFragment.Callbacks, SignUpFragment.Callbacks{
 
-    private Fragment mFragment;
+    private NavController navController;
+    private BottomNavigationView mBottomNavigationView;
 
     @Override
-    protected Fragment createFragment() {
-        return mFragment = SignInFragment.newInstance();
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_authentication);
+
+        navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        mBottomNavigationView = findViewById(R.id.navigation);
+        NavigationUI.setupWithNavController(mBottomNavigationView, navController);
     }
 
     @Override
     public void onSignUpSelected() {
-        FragmentManager fm = getSupportFragmentManager();
-        Fragment fragment = SignUpFragment.newInstance();
-
-        fm.beginTransaction()
-                .remove(mFragment)
-                .add(R.id.fragment_container, fragment)
-                .commit();
-        mFragment = fragment;
+        navController.navigate(R.id.action_signInFragment_to_signUpFragment);
     }
 
 
     @Override
     public void onSignInSelected() {
-        FragmentManager fm = getSupportFragmentManager();
-        Fragment fragment = SignInFragment.newInstance();
+        navController.navigate(R.id.action_signUpFragment_to_signInFragment);
+    }
 
-        fm.beginTransaction()
-                .remove(mFragment)
-                .add(R.id.fragment_container, fragment)
-                .commit();
-        mFragment = fragment;
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
     }
 }
