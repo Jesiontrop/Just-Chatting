@@ -2,13 +2,13 @@
 Simple chat
 ## Chat feed
 
-![](image/Feed.png)
+![](images/Feed.png)
 
 ## Sign In and Sign Up Menu
 
-![](image/SignIn.png)
+![](images/SignIn.png)
 
-![](image/SignUp.png)
+![](images/SignUp.png)
 
 ### Technology stack
 - Firebase
