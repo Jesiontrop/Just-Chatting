@@ -7,6 +7,6 @@
         app:showAsAction="never"/>
     <item
         android:id="@+id/signUpFragment"
-        android:title="@string/sign_out"
+        android:title="@string/sign_up"
         app:showAsAction="never"/>
 </menu>
