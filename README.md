@@ -1,5 +1,5 @@
 # Just-Chatting-Android
-Simple chat
+Simple chat an Android
 ## Chat feed
 
 ![](images/Feed.png)
